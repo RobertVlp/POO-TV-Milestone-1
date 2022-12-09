@@ -3,6 +3,7 @@ package platform;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import platform.movie.Movie;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -72,8 +73,8 @@ public final class Platform implements Visitable {
         }
 
         if (destinationPage.equals("logout")) {
-            this.setCurrentUser(null);
-            this.setCurrentPage("homepage neautentificat");
+            setCurrentUser(null);
+            setCurrentPage("homepage neautentificat");
         }
     }
 
@@ -88,6 +89,10 @@ public final class Platform implements Visitable {
 
         if (error != null) {
             parseErrorOutput(jsonObject, objectMapper);
+
+            if (!currentPage.equals("homepage autentificat")) {
+                setCurrentPage("homepage neautentificat");
+            }
         } else {
             parseSuccessOutput(jsonObject, objectMapper, currentUser);
         }
@@ -133,6 +138,7 @@ public final class Platform implements Visitable {
      */
     public User addUser(final User.Credentials credentials) {
         User newUser = new User();
+
         newUser.setCredentials(credentials);
         users.add(newUser);
 

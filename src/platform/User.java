@@ -1,6 +1,8 @@
 package platform;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import platform.movie.Movie;
+
 import java.util.ArrayList;
 
 @JsonIgnoreProperties({"availableMovies"})

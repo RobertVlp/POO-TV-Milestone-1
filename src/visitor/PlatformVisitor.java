@@ -5,9 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
-import java.util.Comparator;
 
 import platform.*;
+import platform.movie.Movie;
+import platform.movie.SortMoviesComparator;
 
 public final class PlatformVisitor implements Visitor {
     private final Platform platform;
@@ -194,13 +195,15 @@ public final class PlatformVisitor implements Visitor {
             return "Error";
         }
 
-        String duration = filters.getSort().getDuration();
-        String rating = filters.getSort().getRating();
-
         ArrayList<Movie> movies = platform.getCurrentUser().getAvailableMovies();
-        SortMoviesComparator comparator = new SortMoviesComparator(duration, rating);
 
-        movies.sort(comparator);
+        if (filters.getSort() != null) {
+            String duration = filters.getSort().getDuration();
+            String rating = filters.getSort().getRating();
+            SortMoviesComparator comparator = new SortMoviesComparator(duration, rating);
+
+            movies.sort(comparator);
+        }
 
         if (filters.getContains() != null) {
             movies.removeIf(

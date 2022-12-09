@@ -1,4 +1,4 @@
-package platform;
+package platform.movie;
 
 import org.jetbrains.annotations.NotNull;
 
