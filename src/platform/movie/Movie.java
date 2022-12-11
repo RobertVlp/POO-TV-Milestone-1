@@ -1,9 +1,9 @@
 package platform.movie;
 
-import org.jetbrains.annotations.NotNull;
-
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.util.ArrayList;
 
+@JsonIgnoreProperties({"ratings"})
 public final class Movie {
     private String name;
     private Integer year;
@@ -13,12 +13,14 @@ public final class Movie {
     private ArrayList<String> countriesBanned;
     private Integer numLikes;
     private Double rating;
+    private final ArrayList<Double> ratings;
     private Integer numRatings;
 
     public Movie() {
-        this.setNumLikes(0);
-        this.setNumRatings(0);
-        this.setRating(0D);
+        setNumLikes(0);
+        setNumRatings(0);
+        setRating(0D);
+        ratings = new ArrayList<>();
     }
 
     public String getName() {
@@ -91,5 +93,9 @@ public final class Movie {
 
     public void setNumRatings(final Integer numRatings) {
         this.numRatings = numRatings;
+    }
+
+    public ArrayList<Double> getRatings() {
+        return ratings;
     }
 }

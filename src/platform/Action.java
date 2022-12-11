@@ -126,8 +126,8 @@ public final class Action {
         return count;
     }
 
-    public void setCount(final Integer count) {
-        this.count = count;
+    public void setCount(final String count) {
+        this.count = Integer.valueOf(count);
     }
 
     public Filters getFilters() {

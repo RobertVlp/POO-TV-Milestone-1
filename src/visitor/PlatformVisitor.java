@@ -5,8 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
+import java.util.concurrent.atomic.AtomicReference;
 
-import platform.*;
+import platform.Action;
+import platform.Platform;
+import platform.User;
 import platform.movie.Movie;
 import platform.movie.SortMoviesComparator;
 
@@ -26,7 +29,7 @@ public final class PlatformVisitor implements Visitor {
 
             switch (action.getType()) {
                 case "change page" -> {
-                    platform.acceptChangePage(this, action.getPage(), jsonObject, objectMapper);
+                    platform.acceptChangePage(this, action, jsonObject, objectMapper);
 
                     if (!jsonObject.isEmpty()) {
                         output.add(jsonObject);
@@ -37,10 +40,10 @@ public final class PlatformVisitor implements Visitor {
                     switch (action.getFeature()) {
                         case "login" ->
                                 platform.acceptLogin(
-                                    this,
-                                    action.getCredentials(),
-                                    jsonObject,
-                                    objectMapper
+                                        this,
+                                        action.getCredentials(),
+                                        jsonObject,
+                                        objectMapper
                                 );
                         case "register" ->
                                 platform.acceptRegister(
@@ -52,10 +55,10 @@ public final class PlatformVisitor implements Visitor {
 
                         case "search" ->
                                 platform.acceptSearch(
-                                            this,
-                                            action.getStartsWith(),
-                                            jsonObject,
-                                            objectMapper
+                                        this,
+                                        action.getStartsWith(),
+                                        jsonObject,
+                                        objectMapper
                                 );
 
                         case "filter" ->
@@ -66,11 +69,36 @@ public final class PlatformVisitor implements Visitor {
                                         objectMapper
                                 );
 
+                        case "buy tokens" ->
+                                platform.acceptBuyTokens(
+                                        this,
+                                        action.getCount(),
+                                        jsonObject,
+                                        objectMapper
+                                );
+
+                        case "buy premium account" ->
+                                platform.acceptBuyPremiumAccount(this, jsonObject, objectMapper);
+
+                        case "purchase" ->
+                                platform.acceptPurchaseMovie(this, jsonObject, objectMapper);
+
+                        case "watch" ->
+                                platform.acceptWatchMovie(this, jsonObject, objectMapper);
+
+                        case "like" ->
+                                platform.acceptLikeMovie(this, jsonObject, objectMapper);
+
+                        case "rate" ->
+                                platform.acceptRateMovie(this, action.getRate(), jsonObject, objectMapper);
+
                         default -> {
                         }
                     }
 
-                    output.add(jsonObject);
+                    if (!jsonObject.isEmpty()) {
+                        output.add(jsonObject);
+                    }
                 }
 
                 default -> {
@@ -98,7 +126,8 @@ public final class PlatformVisitor implements Visitor {
             case "movies" -> {
                 if (!destinationPage.equals("homepage autentificat")
                         && !destinationPage.equals("see details")
-                        && !destinationPage.equals("logout")) {
+                        && !destinationPage.equals("logout")
+                        && !destinationPage.equals("movies")) {
                     return "Error";
                 }
             }
@@ -106,7 +135,8 @@ public final class PlatformVisitor implements Visitor {
             case "upgrades" -> {
                 if (!destinationPage.equals("homepage autentificat")
                         && !destinationPage.equals("movies")
-                        && !destinationPage.equals("logout")) {
+                        && !destinationPage.equals("logout")
+                        && !destinationPage.equals("upgrades")) {
                     return "Error";
                 }
             }
@@ -115,7 +145,8 @@ public final class PlatformVisitor implements Visitor {
                 if (!destinationPage.equals("homepage autentificat")
                         && !destinationPage.equals("movies")
                         && !destinationPage.equals("upgrades")
-                        && !destinationPage.equals("logout")) {
+                        && !destinationPage.equals("logout")
+                        && !destinationPage.equals("see details")) {
                     return "Error";
                 }
             }
@@ -206,12 +237,189 @@ public final class PlatformVisitor implements Visitor {
         }
 
         if (filters.getContains() != null) {
-            movies.removeIf(
-                    movie -> !movie.getActors().containsAll(filters.getContains().getActors())
-                                || !movie.getGenres().containsAll(filters.getContains().getGenre())
-            );
+            if (filters.getContains().getActors() != null) {
+                movies.removeIf(movie -> !movie.getActors().containsAll(filters.getContains().getActors()));
+            }
+
+            if (filters.getContains().getGenre() != null) {
+                movies.removeIf(movie -> !movie.getGenres().containsAll(filters.getContains().getGenre()));
+            }
         }
 
         return null;
+    }
+
+    @Override
+    public String buyTokens(final Integer count) {
+        if (!platform.getCurrentPage().equals("upgrades")) {
+            return "Error";
+        }
+
+        int userBalance = Integer.parseInt(platform.getCurrentUser().getCredentials().getBalance());
+        Integer userTokens = platform.getCurrentUser().getTokensCount();
+
+        if (userBalance < count) {
+            return "Error";
+        }
+
+        userBalance -= count;
+        userTokens += count;
+
+        platform.getCurrentUser().getCredentials().setBalance(String.valueOf(userBalance));
+        platform.getCurrentUser().setTokensCount(userTokens);
+
+        return null;
+    }
+
+    @Override
+    public String buyPremiumAccount() {
+        if (!platform.getCurrentPage().equals("upgrades")) {
+            return "Error";
+        }
+
+        Integer userTokens = platform.getCurrentUser().getTokensCount();
+
+        if (userTokens < 10) {
+            return "Error";
+        }
+
+        userTokens -= 10;
+
+        platform.getCurrentUser().setTokensCount(userTokens);
+        platform.getCurrentUser().getCredentials().setAccountType("premium");
+
+        return null;
+    }
+
+    @Override
+    public String purchaseMovie() {
+        if (!platform.getCurrentPage().equals("see details")) {
+            return "Error";
+        }
+
+        if (platform.getSearchedMovie() == null) {
+            return "Error";
+        }
+
+        User currentUser = platform.getCurrentUser();
+        Integer numberOfTokens = currentUser.getTokensCount();
+
+        if (currentUser.getCredentials().getAccountType().equals("premium")) {
+            Integer numFreePremiumMovies = currentUser.getNumFreePremiumMovies();
+
+            if (numFreePremiumMovies == 0) {
+                if (numberOfTokens < 2) {
+                    return "Error";
+                }
+
+                numberOfTokens -= 2;
+            } else {
+                numFreePremiumMovies -= 1;
+                currentUser.setNumFreePremiumMovies(numFreePremiumMovies);
+            }
+        } else {
+            if (numberOfTokens < 2) {
+                return "Error";
+            }
+
+            numberOfTokens -= 2;
+        }
+
+        currentUser.setTokensCount(numberOfTokens);
+        currentUser.getPurchasedMovies().add(platform.getSearchedMovie());
+
+        return null;
+    }
+
+    @Override
+    public String watchMovie() {
+        if (!platform.getCurrentPage().equals("see details")) {
+            return "Error";
+        }
+
+        if (platform.getSearchedMovie() == null) {
+            return "Error";
+        }
+
+        User currentUser = platform.getCurrentUser();
+        boolean isMoviePurchased = false;
+
+        for (Movie movie : currentUser.getPurchasedMovies()) {
+            if (movie != null) {
+                if (movie.getName().equals(platform.getSearchedMovie().getName())) {
+                    isMoviePurchased = true;
+                    break;
+                }
+            }
+        }
+
+        if (isMoviePurchased) {
+            currentUser.getWatchedMovies().add(platform.getSearchedMovie());
+        } else {
+            return "Error";
+        }
+
+        return null;
+    }
+
+    @Override
+    public String likeMovie() {
+        if (!platform.getCurrentPage().equals("see details")) {
+            return "Error";
+        }
+
+        if (isMovieWatched(platform.getSearchedMovie())) {
+            Integer numLikes = platform.getSearchedMovie().getNumLikes();
+            numLikes += 1;
+
+            platform.getSearchedMovie().setNumLikes(numLikes);
+            platform.getCurrentUser().getLikedMovies().add(platform.getSearchedMovie());
+        } else {
+            return "Error";
+        }
+
+        return null;
+    }
+
+    @Override
+    public String rateMovie(final Integer rate) {
+        if (!platform.getCurrentPage().equals("see details")) {
+            return "Error";
+        }
+
+        Movie searchedMovie = platform.getSearchedMovie();
+
+        if (searchedMovie == null) {
+            return "Error";
+        }
+
+        if (isMovieWatched(searchedMovie)) {
+            searchedMovie.getRatings().add(Double.valueOf(rate));
+            Integer numRatings = searchedMovie.getNumRatings();
+            numRatings += 1;
+
+            AtomicReference<Double> totalRating = new AtomicReference<>(0D);
+
+            searchedMovie.getRatings().forEach(rating -> totalRating.updateAndGet(v -> v + rating));
+            searchedMovie.setNumRatings(numRatings);
+            searchedMovie.setRating(totalRating.get() / numRatings);
+            platform.getCurrentUser().getRatedMovies().add(searchedMovie);
+        } else {
+            return "Error";
+        }
+
+        return null;
+    }
+
+    private boolean isMovieWatched(final Movie movie) {
+        for (Movie watchedMovie : platform.getCurrentUser().getWatchedMovies()) {
+            if (watchedMovie != null) {
+                if (watchedMovie.getName().equals(movie.getName())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

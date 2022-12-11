@@ -2,7 +2,7 @@ package platform.movie;
 
 import java.util.Comparator;
 
-public class SortMoviesComparator implements Comparator<Movie> {
+public final class SortMoviesComparator implements Comparator<Movie> {
     private final String duration;
     private final String rating;
 
@@ -12,7 +12,7 @@ public class SortMoviesComparator implements Comparator<Movie> {
     }
 
     @Override
-    public int compare(Movie o1, Movie o2) {
+    public int compare(final Movie o1, final Movie o2) {
         if (duration != null && rating != null) {
             if (o1.getDuration().equals(o2.getDuration())) {
                 if (rating.equals("decreasing")) {

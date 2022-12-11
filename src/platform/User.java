@@ -70,8 +70,8 @@ public final class User {
         purchasedMovies = new ArrayList<>();
         likedMovies = new ArrayList<>();
         ratedMovies = new ArrayList<>();
-        this.setNumFreePremiumMovies(15);
-        this.setTokensCount(0);
+        setNumFreePremiumMovies(15);
+        setTokensCount(0);
     }
 
     public Credentials getCredentials() {

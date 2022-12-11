@@ -9,4 +9,10 @@ public interface Visitor {
     String register(User.Credentials credentials);
     String search(String startsWith);
     String filter(Action.Filters filters);
+    String buyTokens(Integer count);
+    String buyPremiumAccount();
+    String purchaseMovie();
+    String watchMovie();
+    String likeMovie();
+    String rateMovie(Integer rate);
 }

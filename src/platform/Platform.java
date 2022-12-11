@@ -15,6 +15,7 @@ public final class Platform implements Visitable {
     private ArrayList<Action> actions;
     private String currentPage;
     private User currentUser;
+    private Movie searchedMovie;
 
     public ArrayList<User> getUsers() {
         return users;
@@ -56,23 +57,43 @@ public final class Platform implements Visitable {
         this.currentUser = currentUser;
     }
 
+    public Movie getSearchedMovie() {
+        return searchedMovie;
+    }
+
     @Override
     public void acceptChangePage(
             final Visitor visitor,
-            final String destinationPage,
+            final Action action,
             final ObjectNode jsonObject,
             final ObjectMapper objectMapper
     ) throws JsonProcessingException {
-        String error = visitor.changePage(destinationPage);
+        String error = visitor.changePage(action.getPage());
 
         if (error != null) {
             parseErrorOutput(jsonObject, objectMapper);
-        } else if ((destinationPage.equals("see details") || destinationPage.equals("movies"))) {
+        } else if (action.getPage().equals("movies")) {
             updateAvailableMovies();
             parseSuccessOutput(jsonObject, objectMapper, currentUser);
+        } else if (action.getPage().equals("see details")) {
+            searchedMovie = null;
+
+            for (Movie movie : currentUser.getAvailableMovies()) {
+                if (movie.getName().equals(action.getMovie())) {
+                    searchedMovie = movie;
+                    break;
+                }
+            }
+
+            if (searchedMovie != null) {
+                parseMovieOutput(jsonObject, objectMapper, searchedMovie, currentUser);
+            } else {
+                parseErrorOutput(jsonObject, objectMapper);
+                setCurrentPage("movies");
+            }
         }
 
-        if (destinationPage.equals("logout")) {
+        if (action.getPage().equals("logout")) {
             setCurrentUser(null);
             setCurrentPage("homepage neautentificat");
         }
@@ -94,11 +115,14 @@ public final class Platform implements Visitable {
                 setCurrentPage("homepage neautentificat");
             }
         } else {
+            currentUser.getAvailableMovies().clear();
             parseSuccessOutput(jsonObject, objectMapper, currentUser);
         }
     }
 
     private void updateAvailableMovies() {
+        currentUser.getAvailableMovies().clear();
+
         for (Movie movie : movies) {
             boolean isMovieBanned = false;
 
@@ -159,6 +183,8 @@ public final class Platform implements Visitable {
         } else {
             parseSuccessOutput(jsonObject, objectMapper, currentUser);
         }
+
+        updateAvailableMovies();
     }
 
     @Override
@@ -168,12 +194,101 @@ public final class Platform implements Visitable {
             final ObjectNode jsonObject,
             final ObjectMapper objectMapper
     ) throws JsonProcessingException {
+        updateAvailableMovies();
         String error = visitor.filter(filters);
 
         if (error != null) {
             parseErrorOutput(jsonObject, objectMapper);
         } else {
             parseSuccessOutput(jsonObject, objectMapper, currentUser);
+        }
+    }
+
+    @Override
+    public void acceptBuyTokens(
+            final Visitor visitor,
+            final Integer count,
+            final ObjectNode jsonObject,
+            final ObjectMapper objectMapper
+    ) throws JsonProcessingException {
+        String error = visitor.buyTokens(count);
+
+        if (error != null) {
+            parseErrorOutput(jsonObject, objectMapper);
+        }
+    }
+
+    @Override
+    public void acceptBuyPremiumAccount(
+            final Visitor visitor,
+            final ObjectNode jsonObject,
+            final ObjectMapper objectMapper
+    ) throws JsonProcessingException {
+        String error = visitor.buyPremiumAccount();
+
+        if (error != null) {
+            parseErrorOutput(jsonObject, objectMapper);
+        }
+    }
+
+    @Override
+    public void acceptPurchaseMovie(
+            final Visitor visitor,
+            final ObjectNode jsonObject,
+            final ObjectMapper objectMapper
+    ) throws JsonProcessingException {
+        String error = visitor.purchaseMovie();
+
+        if (error != null) {
+            parseErrorOutput(jsonObject, objectMapper);
+        } else {
+            parseMovieOutput(jsonObject, objectMapper, searchedMovie, currentUser);
+        }
+    }
+
+    @Override
+    public void acceptWatchMovie(
+            final Visitor visitor,
+            final ObjectNode jsonObject,
+            final ObjectMapper objectMapper
+    ) throws JsonProcessingException {
+        String error = visitor.watchMovie();
+
+        if (error != null) {
+            parseErrorOutput(jsonObject, objectMapper);
+        } else {
+            parseMovieOutput(jsonObject, objectMapper, searchedMovie, currentUser);
+        }
+    }
+
+    @Override
+    public void acceptLikeMovie(
+            final Visitor visitor,
+            final ObjectNode jsonObject,
+            final ObjectMapper objectMapper
+    ) throws JsonProcessingException {
+        String error = visitor.likeMovie();
+
+        if (error != null) {
+            parseErrorOutput(jsonObject, objectMapper);
+        } else {
+            parseMovieOutput(jsonObject, objectMapper, searchedMovie, currentUser);
+        }
+    }
+
+    @Override
+    public void acceptRateMovie(
+            final Visitor visitor,
+            final Integer rate,
+            final ObjectNode jsonObject,
+            final ObjectMapper objectMapper
+    ) throws JsonProcessingException {
+        String error = visitor.rateMovie(rate);
+
+        if (error != null) {
+            parseErrorOutput(jsonObject, objectMapper);
+        } else {
+            parseMovieOutput(jsonObject, objectMapper, searchedMovie, currentUser);
         }
     }
 }
