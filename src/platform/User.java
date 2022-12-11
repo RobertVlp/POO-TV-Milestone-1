@@ -1,7 +1,7 @@
 package platform;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import platform.movie.Movie;
+import platform.movies.Movie;
 
 import java.util.ArrayList;
 

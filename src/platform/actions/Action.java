@@ -1,10 +1,9 @@
-package platform;
+package platform.actions;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+import platform.User;
 
 import java.util.ArrayList;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
 public final class Action {
     private String type;
     private String page;
@@ -13,7 +12,6 @@ public final class Action {
     private String startsWith;
     private String movie;
     private Integer rate;
-    private String objectType;
 
     public static final class Filters {
         public static final class Sort {
@@ -79,7 +77,6 @@ public final class Action {
     }
 
     private Filters filters;
-
     private Integer count;
 
     public String getType() {
@@ -152,13 +149,5 @@ public final class Action {
 
     public void setRate(final Integer rate) {
         this.rate = rate;
-    }
-
-    public String getObjectType() {
-        return objectType;
-    }
-
-    public void setObjectType(final String objectType) {
-        this.objectType = objectType;
     }
 }

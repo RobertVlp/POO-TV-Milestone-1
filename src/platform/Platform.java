@@ -3,7 +3,8 @@ package platform;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import platform.movie.Movie;
+import platform.actions.Action;
+import platform.movies.Movie;
 import visitor.Visitable;
 import visitor.Visitor;
 
@@ -16,6 +17,10 @@ public final class Platform implements Visitable {
     private String currentPage;
     private User currentUser;
     private Movie searchedMovie;
+
+    public Platform() {
+        setCurrentPage("homepage neautentificat");
+    }
 
     public ArrayList<User> getUsers() {
         return users;
@@ -124,16 +129,7 @@ public final class Platform implements Visitable {
         currentUser.getAvailableMovies().clear();
 
         for (Movie movie : movies) {
-            boolean isMovieBanned = false;
-
-            for (String country : movie.getCountriesBanned()) {
-                if (currentUser.getCredentials().getCountry().equals(country)) {
-                    isMovieBanned = true;
-                    break;
-                }
-            }
-
-            if (!isMovieBanned) {
+            if (!movie.getCountriesBanned().contains(currentUser.getCredentials().getCountry())) {
                 currentUser.getAvailableMovies().add(movie);
             }
         }

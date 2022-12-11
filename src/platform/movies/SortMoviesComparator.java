@@ -1,4 +1,4 @@
-package platform.movie;
+package platform.movies;
 
 import java.util.Comparator;
 
@@ -13,32 +13,35 @@ public final class SortMoviesComparator implements Comparator<Movie> {
 
     @Override
     public int compare(final Movie o1, final Movie o2) {
+        int compareDuration = o1.getDuration().compareTo(o2.getDuration());
+        int compareRating = o1.getRating().compareTo(o2.getRating());
+
         if (duration != null && rating != null) {
             if (o1.getDuration().equals(o2.getDuration())) {
                 if (rating.equals("decreasing")) {
-                    return o2.getRating().compareTo(o1.getRating());
+                    return (-1) * compareRating;
                 } else {
-                    return o1.getRating().compareTo(o2.getRating());
+                    return compareRating;
                 }
             } else {
                 if (duration.equals("decreasing")) {
-                    return o2.getDuration().compareTo(o1.getDuration());
+                    return (-1) * compareDuration;
                 } else {
-                    return o1.getDuration().compareTo(o2.getDuration());
+                    return compareDuration;
                 }
             }
         } else {
             if (duration != null) {
                 if (duration.equals("decreasing")) {
-                    return o2.getDuration().compareTo(o1.getDuration());
+                    return (-1) * compareDuration;
                 } else {
-                    return o1.getDuration().compareTo(o2.getDuration());
+                    return compareDuration;
                 }
             } else {
                 if (rating.equals("decreasing")) {
-                    return o2.getRating().compareTo(o1.getRating());
+                    return (-1) * compareRating;
                 } else {
-                    return o1.getRating().compareTo(o2.getRating());
+                    return compareRating;
                 }
             }
         }

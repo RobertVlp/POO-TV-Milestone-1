@@ -1,110 +1,18 @@
 package visitor;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ArrayNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
-
-import platform.Action;
+import platform.actions.Action;
 import platform.Platform;
 import platform.User;
-import platform.movie.Movie;
-import platform.movie.SortMoviesComparator;
+import platform.movies.Movie;
+import platform.movies.SortMoviesComparator;
 
 public final class PlatformVisitor implements Visitor {
     private final Platform platform;
 
     public PlatformVisitor(final Platform platform) {
         this.platform = platform;
-    }
-
-    public void performActions(
-            final ObjectMapper objectMapper,
-            final ArrayNode output
-    ) throws JsonProcessingException {
-        for (Action action : platform.getActions()) {
-            ObjectNode jsonObject = objectMapper.createObjectNode();
-
-            switch (action.getType()) {
-                case "change page" -> {
-                    platform.acceptChangePage(this, action, jsonObject, objectMapper);
-
-                    if (!jsonObject.isEmpty()) {
-                        output.add(jsonObject);
-                    }
-                }
-
-                case "on page" -> {
-                    switch (action.getFeature()) {
-                        case "login" ->
-                                platform.acceptLogin(
-                                        this,
-                                        action.getCredentials(),
-                                        jsonObject,
-                                        objectMapper
-                                );
-                        case "register" ->
-                                platform.acceptRegister(
-                                        this,
-                                        action.getCredentials(),
-                                        jsonObject,
-                                        objectMapper
-                                );
-
-                        case "search" ->
-                                platform.acceptSearch(
-                                        this,
-                                        action.getStartsWith(),
-                                        jsonObject,
-                                        objectMapper
-                                );
-
-                        case "filter" ->
-                                platform.acceptFilter(
-                                        this,
-                                        action.getFilters(),
-                                        jsonObject,
-                                        objectMapper
-                                );
-
-                        case "buy tokens" ->
-                                platform.acceptBuyTokens(
-                                        this,
-                                        action.getCount(),
-                                        jsonObject,
-                                        objectMapper
-                                );
-
-                        case "buy premium account" ->
-                                platform.acceptBuyPremiumAccount(this, jsonObject, objectMapper);
-
-                        case "purchase" ->
-                                platform.acceptPurchaseMovie(this, jsonObject, objectMapper);
-
-                        case "watch" ->
-                                platform.acceptWatchMovie(this, jsonObject, objectMapper);
-
-                        case "like" ->
-                                platform.acceptLikeMovie(this, jsonObject, objectMapper);
-
-                        case "rate" ->
-                                platform.acceptRateMovie(this, action.getRate(), jsonObject, objectMapper);
-
-                        default -> {
-                        }
-                    }
-
-                    if (!jsonObject.isEmpty()) {
-                        output.add(jsonObject);
-                    }
-                }
-
-                default -> {
-                }
-            }
-        }
     }
 
     @Override
@@ -384,6 +292,10 @@ public final class PlatformVisitor implements Visitor {
     @Override
     public String rateMovie(final Integer rate) {
         if (!platform.getCurrentPage().equals("see details")) {
+            return "Error";
+        }
+
+        if (rate > 5) {
             return "Error";
         }
 
