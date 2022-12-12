@@ -34,7 +34,7 @@ of error. You can take a look at the diagram below to better understand the proj
 
 ### Conclusions
 It was an interesting challenge to develop this first milestone. I learned how to apply the Visitor design pattern
-in a practical situation and also improved my understanding of some important OOP concepts(for example working with
+in a practical situation and also improved my understanding of some important OOP concepts (for example working with
 inner classes or lambda expressions). Some important resources that I found useful in making this project are:
 [Visitor design pattern](https://www.geeksforgeeks.org/visitor-design-pattern/), 
 [Laboratorul 5: Abstractizare](https://ocw.cs.pub.ro/courses/poo-ca-cd/laboratoare/clase-abstracte-interfete), 
