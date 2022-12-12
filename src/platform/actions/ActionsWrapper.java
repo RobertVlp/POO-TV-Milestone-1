@@ -33,18 +33,13 @@ public final class ActionsWrapper {
             ObjectNode jsonObject = objectMapper.createObjectNode();
 
             switch (action.getType()) {
-                case "change page" -> {
+                case "change page" ->
                     platform.acceptChangePage(
                             platformVisitor,
                             action,
                             jsonObject,
                             objectMapper
                     );
-
-                    if (!jsonObject.isEmpty()) {
-                        output.add(jsonObject);
-                    }
-                }
 
                 case "on page" -> {
                     switch (action.getFeature()) {
@@ -126,14 +121,14 @@ public final class ActionsWrapper {
                         default -> {
                         }
                     }
-
-                    if (!jsonObject.isEmpty()) {
-                        output.add(jsonObject);
-                    }
                 }
 
                 default -> {
                 }
+            }
+
+            if (!jsonObject.isEmpty()) {
+                output.add(jsonObject);
             }
         }
     }

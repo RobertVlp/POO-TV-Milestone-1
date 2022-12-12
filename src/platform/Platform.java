@@ -7,7 +7,6 @@ import platform.actions.Action;
 import platform.movies.Movie;
 import visitor.Visitable;
 import visitor.Visitor;
-
 import java.util.ArrayList;
 
 public final class Platform implements Visitable {
